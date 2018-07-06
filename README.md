@@ -1,7 +1,14 @@
 # ppasumi
 
-## Workflow
-not yet!
+## preparation
+1. install Selenium
+1. install ChromeDriver from <http://chromedriver.chromium.org/downloads>
+
+## workflow
+1. `./trade.py`
+1. enter path to ChromeDriver
+1. enter your userid
+1. enter your password
 
 ## development policy
 * shared repository model

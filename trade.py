@@ -21,7 +21,6 @@ def main():
     password = input()
     
     url = "https://fx-demo.click-sec.com/neo/web/trade"
-    chromedriver = "/mnt/c/Program Files (x86)/Google/Chrome/Application/chromedriver_.exe"
     driver = webdriver.Chrome(chromedriver)
     driver.get(url)
     

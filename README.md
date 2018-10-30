@@ -19,6 +19,12 @@
 ## schedule
 not yet!
 
+## backtest
+* entry as BID when macd < signal
+* entry as ASK when macd > signal
+* set when next entry
+* `./backtest.py`
+
 ## link
 <https://ameblo.jp/ppasumi>
 

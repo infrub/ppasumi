@@ -7,6 +7,8 @@ dataset format: ./data/USDJPY_1601_1806/yyyymm/USDJPY_yyyymmdd.csv
 entry as bid or ask only when macd < or > signal
 set the entry when next entry
 output the sum of pips and graph of pips cumulation
+
+TODO: when settle?
 """
 
 import os

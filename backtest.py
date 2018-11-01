@@ -25,7 +25,7 @@ LDAY = 11
 SIGDAY = 4
 
 def load_data(dirpath):
-    data = pd.DataFrame()
+    data_df = pd.DataFrame()
     for yyyy in trange(2016, 2019):
         for mm in range(1, 13):
             yyyymm = 100 * yyyy + mm
@@ -34,55 +34,58 @@ def load_data(dirpath):
                 filelist = os.listdir(filedir)
                 filelist.sort()
                 for filename in filelist:
-                    tmp = pd.read_csv(filedir + '/' + filename, encoding='shift-jis')
-                    data = pd.concat([data, tmp])
-    return data
+                    tmp = pd.read_csv(filedir + "/" + filename, encoding="shift-jis")
+                    data_df = pd.concat([data_df, tmp])
+    return data_df
                     
-def convert_to_5min(data):
-    data.columns = ['datetime', 'bidopen', 'bidhigh', 'bidlow', 'bidclose', 'askopen', 'askhigh', 'asklow', 'askclose']
-    data = data[::5]
-    data.datetime = pd.to_datetime(data.datetime)
-    data.index = data.datetime.tolist()
-    del data['datetime']
-    data["bidclose"] = data["bidopen"].shift(-1)
-    data["askclose"] = data["askopen"].shift(-1)
-    return data
+def convert_to_5min(data_df):
+    data_df.columns = ["datetime", "bidopen", "bidhigh", "bidlow", "bidclose", "askopen", "askhigh", "asklow", "askclose"]
+    data_df = data_df[::5]
+    data_df.datetime = pd.to_datetime(data_df.datetime)
+    data_df.index = data_df.datetime.tolist()
+    del data_df["datetime"]
+    data_df["bidclose"] = data_df.bidopen.shift(-1)
+    data_df["askclose"] = data_df.askopen.shift(-1)
 
-def compute_indicators(data):
-    data['sema'] = data.bidclose.ewm(alpha=2/(SDAY + 1)).mean()
-    data['lema'] = data.bidclose.ewm(alpha=2/(LDAY + 1)).mean()
-    data['macd'] = data.sema - data.lema
-    data['signal'] = data.macd.rolling(SIGDAY).mean()
+    return data_df
 
-    data['indicator'] = np.sign(data.macd - data.signal)
-    data['tradeflag'] = (data.indicator - data.indicator.shift(1))/2 # -1:BID, 1:ASK
+def compute_indicators(data_df):
+    data_df["sema"] = data_df.bidclose.ewm(alpha=2/(SDAY + 1)).mean()
+    data_df["lema"] = data_df.bidclose.ewm(alpha=2/(LDAY + 1)).mean()
+    data_df["macd"] = data_df.sema - data_df.lema
+    data_df["signal"] = data_df.macd.rolling(SIGDAY).mean()
+
+    data_df["indicator"] = np.sign(data_df.macd - data_df.signal)
+    data_df["tradeflag"] = (data_df.indicator - data_df.indicator.shift(1))/2 # -1:BID, 1:ASK
+    del data_df["sema"]
+    del data_df["lema"]
+
+    return data_df
     
-    return data
-    
-def entry_and_set(data):
-    entrydata = data[abs(data["tradeflag"]) == 1]
+def make_entry_and_set_df(data_df):
+    entrydata = data_df[abs(data_df.tradeflag) == 1]
 
     entrydata["entryrate"] = entrydata[entrydata["tradeflag"] == -1]["bidclose"]
     entrydata["entryrate"] = entrydata["entryrate"].fillna(entrydata["askclose"])
     entrydata["setrate"] = entrydata["askclose"].where(entrydata["tradeflag"] == 1).shift(-1)
     entrydata["setrate"] = entrydata["setrate"].fillna(entrydata["bidclose"].shift(-1))
 
-    entrydata["pips"] = (entrydata["setrate"] - entrydata["entryrate"]) * entrydata["tradeflag"]
+    entrydata["pips"] = (entrydata.setrate - entrydata.entryrate) * entrydata.tradeflag
     
     return entrydata
 
 def main():
-    data = load_data('./data/USDJPY_1601_1806/')
-    data = convert_to_5min(data)
-    data = compute_indicators(data)
-    entrydata = entry_and_set(data)
+    rawdata_df = load_data("./data/USDJPY_1601_1806/")
+    data_df = convert_to_5min(rawdata_df)
+    data_df = compute_indicators(data_df)
+    entrydata = make_entry_and_set_df(data_df)
     
-    data["pips"] = entrydata["pips"] 
-    print("SUM of pips:", data["pips"].sum())
+    data_df["pips"] = entrydata["pips"]
+    print("SUM of pips:", data_df["pips"].sum())
     
-    start = '20160101'
-    end   = '20180701'
-    data["pips"].cumsum().plot()
+    start = "20160101"
+    end   = "20180701"
+    data_df["pips"].cumsum().plot()
     plt.ylabel("pips")
     plt.xlabel("time")
     plt.show()

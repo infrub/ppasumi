@@ -62,10 +62,10 @@ def compute_indicators(data):
 def entry_and_set(data):
     entrydata = data[abs(data["tradeflag"]) == 1]
 
-    entrydata["entryrate"] = entrydata[entrydata["tradeflag"] == -1]["bidopen"]
-    entrydata["entryrate"] = entrydata["entryrate"].fillna(entrydata["askopen"])
-    entrydata["setrate"] = entrydata["askopen"].where(entrydata["tradeflag"] == 1).shift(-1)
-    entrydata["setrate"] = entrydata["setrate"].fillna(entrydata["bidopen"].shift(-1))
+    entrydata["entryrate"] = entrydata[entrydata["tradeflag"] == -1]["bidclose"]
+    entrydata["entryrate"] = entrydata["entryrate"].fillna(entrydata["askclose"])
+    entrydata["setrate"] = entrydata["askclose"].where(entrydata["tradeflag"] == 1).shift(-1)
+    entrydata["setrate"] = entrydata["setrate"].fillna(entrydata["bidclose"].shift(-1))
 
     entrydata["pips"] = (entrydata["setrate"] - entrydata["entryrate"]) * entrydata["tradeflag"]
     

@@ -16,8 +16,6 @@ def login(driver, userid, password):
 def setup_speed_order(driver):
     speedOrderButton = driver.find_element_by_class_name("header-speed")
     speedOrderButton.click()
-    window_lst = driver.window_handles
-    driver.switch_to_window(window_lst[1])
 
 def set_trade_quantity(driver, tradeQuantity):
     quantityBox = driver.find_element_by_class_name("quantity")
@@ -35,6 +33,15 @@ def settle_all(driver):
     settleButton = driver.find_element_by_class_name("all-settle-button")
     settleButton.click()
 
+def get_current_rates(driver):
+    bidrate = driver.find_element_by_class_name("ratePanel-box-bid")
+    askrate = driver.find_element_by_class_name("ratePanel-box-ask")
+    bidrate_str = bidrate.text.replace("\n", "")
+    askrate_str = askrate.text.replace("\n", "")
+    bidrate_flt = float(bidrate_str.replace("\n", ""))
+    askrate_flt = float(askrate_str.replace("\n", ""))
+    return bidrate_flt, askrate_flt
+
 def main():
     print('Input the driver path: ', end='')
     chromedriver = input()
@@ -50,22 +57,29 @@ def main():
     login(driver, userid, password)
     time.sleep(1)
     
+    print(get_current_rates(driver))
+    
     setup_speed_order(driver)
     time.sleep(0.5)
     
+    window_lst = driver.window_handles
+    mainWindow = window_lst[0]
+    orderWindow = window_lst[1]
+    
+    driver.switch_to_window(orderWindow)
     set_trade_quantity(driver, 1)
     time.sleep(0.5)
     
-    entry_bid(driver)
+#    entry_bid(driver)
     time.sleep(3)
 
-    settle_all(driver)
+#    settle_all(driver)
     time.sleep(3)
     
-    entry_ask(driver)
+#    entry_ask(driver)
     time.sleep(3)
 
-    settle_all(driver)
+#    settle_all(driver)
     time.sleep(3)
     
     time.sleep(10)
